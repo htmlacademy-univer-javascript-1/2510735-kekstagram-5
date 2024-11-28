@@ -7,6 +7,8 @@ const commentsCount = bigPicture.querySelector('.comments-count');
 const socialComments = bigPicture.querySelector('.social__comments');
 const socialCaption = bigPicture.querySelector('.social__caption');
 const closeButton = bigPicture.querySelector('.big-picture__cancel');
+const commentCount = bigPicture.querySelector('.social__comment-count');
+const commentsLoader = bigPicture.querySelector('.social__comments-loader');
 
 // Функция для отрисовки полноразмерного окна
 function renderBigPicture(photoData) {
@@ -18,8 +20,24 @@ function renderBigPicture(photoData) {
   // Очищаем предыдущие комментарии
   socialComments.innerHTML = '';
 
-  // Добавляем новые комментарии
-  photoData.comments.forEach(comment => {
+  // Удаляем класс hidden у блоков счётчика комментариев и загрузки новых комментариев
+  commentCount.classList.remove('hidden');
+  commentsLoader.classList.remove('hidden');
+
+  // Открываем окно
+  bigPicture.classList.remove('hidden');
+  document.body.classList.add('modal-open');
+
+  // Загрузка первых 5 комментариев
+  loadComments(photoData.comments, 0, 5);
+}
+
+// Функция для загрузки комментариев
+function loadComments(comments, startIndex, count) {
+  const endIndex = startIndex + count;
+  const shownComments = comments.slice(startIndex, endIndex);
+
+  shownComments.forEach(comment => {
     const commentElement = document.createElement('li');
     commentElement.classList.add('social__comment');
 
@@ -39,16 +57,20 @@ function renderBigPicture(photoData) {
     socialComments.appendChild(commentElement);
   });
 
-  // Скрываем блоки счётчика комментариев и загрузки новых комментариев
-  const commentCount = bigPicture.querySelector('.social__comment-count');
-  const commentsLoader = bigPicture.querySelector('.social__comments-loader');
-  commentCount.classList.add('hidden');
-  commentsLoader.classList.add('hidden');
+  // Обновляем счётчик показанных комментариев
+  commentCount.textContent = `${endIndex} из ${comments.length} комментариев`;
 
-  // Открываем окно
-  bigPicture.classList.remove('hidden');
-  document.body.classList.add('modal-open');
+  // Если все комментарии загружены, скрываем кнопку "Загрузить ещё"
+  if (endIndex >= comments.length) {
+    commentsLoader.classList.add('hidden');
+  }
 }
+
+// Обработчик загрузки новых комментариев
+commentsLoader.addEventListener('click', () => {
+  const currentComments = socialComments.children.length;
+  loadComments(comments, currentComments, 5);
+});
 
 // Функция для закрытия окна
 function closeBigPicture() {
